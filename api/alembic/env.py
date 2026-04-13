@@ -6,7 +6,7 @@ from sqlalchemy.ext.asyncio import create_async_engine
 
 from app.config import settings
 from app.database import Base
-import app.models  # noqa: F401 – rejestruje modele w Base.metadata
+import app.models.task  # noqa: F401 – registers models in Base.metadata
 
 config = context.config
 config.set_main_option("sqlalchemy.url", settings.database_url)
