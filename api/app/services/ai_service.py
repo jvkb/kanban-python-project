@@ -1,6 +1,7 @@
 import hashlib
 
 from openai import AsyncOpenAI
+from openai.types.chat import ChatCompletionSystemMessageParam, ChatCompletionUserMessageParam
 from redis.asyncio import Redis
 
 from app.config import settings
@@ -32,11 +33,11 @@ class AIService:
             user_content += f"\nDescription: {data.description}"
 
         response = await self.client.chat.completions.parse(
-            model="gpt-5",
+            model="gpt-5.4-mini",
             response_format=AIAnalyzeResponse,
             messages=[
-                {"role": "system", "content": ANALYZE_TASK_SYSTEM},
-                {"role": "user", "content": user_content},
+                ChatCompletionSystemMessageParam(role="system", content=ANALYZE_TASK_SYSTEM),
+                ChatCompletionUserMessageParam(role="user", content=user_content),
             ],
         )
 
