@@ -8,6 +8,13 @@ Status = Literal["todo", "in_progress", "done"]
 Priority = Literal["low", "medium", "high"]
 
 
+class TaskListResponse(BaseModel):
+    items: list["TaskRead"]
+    total: int
+    limit: int
+    offset: int
+
+
 class TaskCreate(BaseModel):
     title: str
     description: str | None = None

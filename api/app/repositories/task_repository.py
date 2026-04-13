@@ -1,18 +1,33 @@
 import uuid
 
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.task import Task
+from app.schemas.task import Status
 
 
 class TaskRepository:
     def __init__(self, session: AsyncSession):
         self.session = session
 
-    async def get_all(self) -> list[Task]:
-        result = await self.session.execute(select(Task).order_by(Task.created_at.desc()))
-        return list(result.scalars().all())
+    async def get_all(
+        self,
+        status: Status | None = None,
+        limit: int = 50,
+        offset: int = 0,
+    ) -> tuple[list[Task], int]:
+        query = select(Task)
+        if status:
+            query = query.where(Task.status == status)
+
+        total_result = await self.session.execute(select(func.count()).select_from(query.subquery()))
+        total = total_result.scalar_one()
+
+        result = await self.session.execute(
+            query.order_by(Task.created_at.desc()).limit(limit).offset(offset)
+        )
+        return list(result.scalars().all()), total
 
     async def get_by_id(self, task_id: uuid.UUID) -> Task | None:
         result = await self.session.execute(select(Task).where(Task.id == task_id))

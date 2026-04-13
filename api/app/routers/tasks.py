@@ -1,17 +1,23 @@
 import uuid
+from typing import Annotated
 
-from fastapi import APIRouter, Depends, status
+from fastapi import APIRouter, Depends, Query, status
 
 from app.dependencies import get_task_service
-from app.schemas.task import TaskCreate, TaskRead, TaskUpdate
+from app.schemas.task import Status, TaskCreate, TaskListResponse, TaskRead, TaskUpdate
 from app.services.task_service import TaskService
 
 router = APIRouter(prefix="/tasks", tags=["tasks"])
 
 
-@router.get("", response_model=list[TaskRead])
-async def list_tasks(service: TaskService = Depends(get_task_service)):
-    return await service.get_all()
+@router.get("", response_model=TaskListResponse)
+async def list_tasks(
+    status_filter: Annotated[Status | None, Query(alias="status")] = None,
+    limit: Annotated[int, Query(ge=1, le=100)] = 50,
+    offset: Annotated[int, Query(ge=0)] = 0,
+    service: TaskService = Depends(get_task_service),
+):
+    return await service.get_all(status=status_filter, limit=limit, offset=offset)
 
 
 @router.post("", response_model=TaskRead, status_code=status.HTTP_201_CREATED)

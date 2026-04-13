@@ -3,15 +3,26 @@ import uuid
 from app.exceptions import TaskNotFoundError
 from app.models.task import Task
 from app.repositories.task_repository import TaskRepository
-from app.schemas.task import TaskCreate, TaskUpdate
+from app.schemas.task import Status, TaskCreate, TaskListResponse, TaskRead, TaskUpdate
 
 
 class TaskService:
     def __init__(self, repository: TaskRepository):
         self.repository = repository
 
-    async def get_all(self) -> list[Task]:
-        return await self.repository.get_all()
+    async def get_all(
+        self,
+        status: Status | None = None,
+        limit: int = 50,
+        offset: int = 0,
+    ) -> TaskListResponse:
+        items, total = await self.repository.get_all(status=status, limit=limit, offset=offset)
+        return TaskListResponse(
+            items=[TaskRead.model_validate(task) for task in items],
+            total=total,
+            limit=limit,
+            offset=offset,
+        )
 
     async def get_by_id(self, task_id: uuid.UUID) -> Task:
         task = await self.repository.get_by_id(task_id)
